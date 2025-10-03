@@ -1,5 +1,6 @@
 import time
 import matplotlib.pyplot as plt
+from pybloom_live import BloomFilter
 
 class LoginChecker:
     def __init__(self):
@@ -86,6 +87,30 @@ class HashTableChecker(LoginChecker):
         self.comparisons += 1
         return name in self.logins
 
+class BloomFilterChecker(LoginChecker):
+    def __init__(self, capacity=1000000, error_rate=0.001):
+        super().__init__()
+        self.bloom = BloomFilter(capacity=capacity, error_rate=error_rate)
+        self.logins = set()
+
+    def add_login(self, name):
+        self.comparisons += 1
+        if name in self.bloom:
+            self.comparisons += 1
+            if name in self.logins:
+                return False
+        self.bloom.add(name)
+        self.logins.add(name)
+        self.login_count += 1
+        return True
+
+    def check_exists(self, name):
+        self.comparisons += 1
+        if name not in self.bloom:
+            return False
+        self.comparisons += 1
+        return name in self.logins
+
 def load_logins_from_file(filename):
     with open(filename, 'r') as f:
         return [line.strip() for line in f if line.strip()]
@@ -137,23 +162,18 @@ def print_results(results):
     print(f"Lookup comparisons: {results['lookup_comparisons']:,} (avg {results['lookup_comparisons']/results['num_lookups']:.1f})")
 
 def main():
-    # Test for login dataset sample sizes of 100, 1000, 10k, 100k, 1m, 6.5m 
-    test_sizes = [100, 1000, 10000, 100000, 1000000, 6500000]
+    test_sizes = [100, 500, 1000, 2000, 5000]
     all_results = []
     login_file = 'logins.txt'
 
     for size in test_sizes:
-        for checker_class in [ListLinearSearchChecker, SortedArrayBinarySearchChecker, HashTableChecker]:
-            # Skip linear searching for anything over 10,000 because it just simply takes way too long
-            if checker_class == ListLinearSearchChecker and size > 10000:
-                pass
+        for checker_class in [ListLinearSearchChecker, SortedArrayBinarySearchChecker, HashTableChecker, BloomFilterChecker]:
             results = run_test(checker_class, size, size, login_file=login_file)
             all_results.append(results)
             print_results(results)
 
-    # Plot results
-    algorithms = ['ListLinearSearchChecker', 'SortedArrayBinarySearchChecker', 'HashTableChecker']
-    colors = ['red', 'blue', 'green']
+    algorithms = ['ListLinearSearchChecker', 'SortedArrayBinarySearchChecker', 'HashTableChecker', 'BloomFilterChecker']
+    colors = ['red', 'blue', 'green', 'purple']
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
 
