@@ -137,12 +137,16 @@ def print_results(results):
     print(f"Lookup comparisons: {results['lookup_comparisons']:,} (avg {results['lookup_comparisons']/results['num_lookups']:.1f})")
 
 def main():
-    test_sizes = [100, 500, 1000, 2000, 5000]
+    # Test for login dataset sample sizes of 100, 1000, 10k, 100k, 1m, 6.5m 
+    test_sizes = [100, 1000, 10000, 100000, 1000000, 6500000]
     all_results = []
     login_file = 'logins.txt'
 
     for size in test_sizes:
         for checker_class in [ListLinearSearchChecker, SortedArrayBinarySearchChecker, HashTableChecker]:
+            # Skip linear searching for anything over 10,000 because it just simply takes way too long
+            if checker_class == ListLinearSearchChecker and size > 10000:
+                pass
             results = run_test(checker_class, size, size, login_file=login_file)
             all_results.append(results)
             print_results(results)
