@@ -6,8 +6,8 @@ This repository is intended to store my assignment 1 submission for UBC COSC 520
 
 ## Report
 
-My final report for this assignment is available at (docs/report.pdf)[docs/report.pdf]
+My final report for this assignment is available at [docs/report.pdf](docs/report.pdf)
 
 ## Dataset
 
-I generated synthetic data using the `generate_logins.py` script, which can be found in (data/logins.txt)[data/logins.txt]
+I generated synthetic data using the `generate_logins.py` script, which can be found in [data/logins.txt](data/logins.txt)
