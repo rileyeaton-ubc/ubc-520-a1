@@ -5,6 +5,8 @@ from tqdm import tqdm
 
 fake = Faker()
 
+DATA_PATH = "./data/logins.txt"
+
 def generate_login():
     strategy = random.choice(['username', 'firstname_numbers', 'lastname_numbers',
                              'firstname_lastname', 'email_prefix', 'random_letters'])
@@ -26,7 +28,7 @@ def generate_login():
 
     return login
 
-def generate_unique_logins(count, output_file='logins.txt'):
+def generate_unique_logins(count, output_file=DATA_PATH):
     logins = set()
     attempts = count * 2
 
@@ -42,4 +44,4 @@ def generate_unique_logins(count, output_file='logins.txt'):
     print(f'Generated {len(logins)} unique logins to {output_file}')
 
 if __name__ == '__main__':
-    generate_unique_logins(10000000, 'logins.txt')
+    generate_unique_logins(10000000, DATA_PATH)
