@@ -1,0 +1,89 @@
+\subsection{Test Data Generation}
+
+All experiments use realistic login data generated using the Faker library \cite{faker2024}, which produces human-like usernames following common patterns:
+\begin{itemize}
+    \item Standard usernames (e.g., \texttt{john\_smith})
+    \item First/last names with numeric suffixes (e.g., \texttt{alice123})
+    \item Email prefixes (e.g., \texttt{user.name})
+    \item Random alphanumeric combinations
+\end{itemize}
+
+A dataset of \textasciitilde6.5 million unique logins was pre-generated and stored in a text file to ensure consistency across all test runs. This approach eliminates variability from data generation and allows for reproducible results, while not having to waste time re-generating logins for each test.
+
+\subsection{Test Size Selection}
+
+The experimental design uses five test sizes: \textbf{100, 500, 1,000, 2,000, and 5,000} logins. This progression was chosen to reveal algorithmic scaling behavior across different dataset sizes.
+
+\subsubsection{Justification for Size Range}
+
+\textbf{Starting Point (n=100):} This small size establishes baseline behavior where all algorithms perform reasonably well. It serves as a control point showing that even inefficient algorithms can handle small datasets, with differences measured in microseconds rather than seconds.
+
+\textbf{Early Growth (n=500):} At this scale, quadratic algorithms like linear search begin to show noticeable degradation. With $O(n^2)$ insertion complexity, linear search performs approximately $500^2/2 = 125,000$ comparisons during insertion, compared to just 500 for hash-based approaches. This 250x difference becomes measurable.
+
+\textbf{Moderate Scale (n=1,000):} This represents a typical small-to-medium application scenario (e.g., active users in a small web service). The gap between linear ($\sim$500,000 comparisons) and logarithmic approaches becomes substantial. Binary search requires only $\log_2(1000) \approx 10$ comparisons per lookup, demonstrating the logarithmic advantage.
+
+\textbf{Scaling Point (n=2,000):} Doubling from 1,000 to 2,000 elements reveals scaling characteristics:
+\begin{itemize}
+    \item Linear search: 4x increase in comparisons (from 500K to 2M)
+    \item Binary search: minimal increase ($\log_2(2000) \approx 11$ vs. 10)
+    \item Hash tables: constant performance regardless of size
+\end{itemize}
+
+\textbf{Upper Limit (n=5,000):} This size approaches practical limits for inefficient algorithms while remaining computationally feasible for benchmarking. Linear search performs approximately 12.5 million comparisons for insertion alone, creating multi-second delays that would be unacceptable in production systems. Meanwhile, constant-time structures maintain sub-second performance.
+
+\subsubsection{Why Not Larger Sizes?}
+
+Testing beyond 5,000 elements faces diminishing returns:
+
+\begin{enumerate}
+    \item \textbf{Linear/Binary search impracticality:} At $n=10,000$, linear search would perform 50 million comparisons, taking prohibitively long and providing no additional insight---we already know it scales poorly.
+
+    \item \textbf{Constant-time convergence:} Hash tables, Bloom filters, and Cuckoo filters all exhibit $O(1)$ performance. Beyond 5,000 elements, their timing curves flatten, showing only minor variations due to cache effects and system noise rather than algorithmic differences.
+
+    \item \textbf{Statistical significance:} The chosen range provides sufficient data points to establish clear trends. Five orders of magnitude captures the algorithmic behavior across practical scales.
+\end{enumerate}
+
+\subsection{Experimental Procedure}
+
+For each test size $n$, the experiment proceeds as follows:
+
+\begin{enumerate}
+    \item \textbf{Initialization:} Create an empty data structure instance
+    \item \textbf{Insertion Phase:} Add $n$ unique logins from the pre-generated dataset, measuring:
+    \begin{itemize}
+        \item Total insertion time (wall-clock)
+        \item Number of comparisons performed
+    \end{itemize}
+    \item \textbf{Lookup Phase:} Perform $n$ lookup operations with a 50/50 mix:
+    \begin{itemize}
+        \item 50\% existing logins (true positives)
+        \item 50\% non-existent logins (true negatives)
+    \end{itemize}
+    \item \textbf{Metrics Collection:} Record timing and comparison statistics
+\end{enumerate}
+
+This procedure is repeated for all five data structures at each size, yielding 25 experimental trials total.
+
+\subsection{Performance Metrics}
+
+Two primary metrics quantify performance:
+
+\textbf{Wall-Clock Time:} Measures actual execution time in seconds, capturing real-world performance including constant factors, cache effects, and implementation overhead. This metric reflects what users would experience in production.
+
+\textbf{Comparison Count:} Tracks the number of element comparisons or hash function evaluations. This implementation-independent metric directly reflects theoretical complexity, allowing validation of asymptotic bounds (e.g., verifying that binary search indeed performs $O(\log n)$ comparisons).
+
+The combination of these metrics provides both theoretical validation and practical insight into algorithm performance.
+
+\subsection{Implementation Details}
+
+All implementations use Python 3.12 with the following specifics:
+
+\begin{itemize}
+    \item \textbf{Linear Search:} Python list with sequential iteration
+    \item \textbf{Binary Search:} Sorted Python list with manual binary search implementation
+    \item \textbf{Hash Table:} Python's built-in \texttt{set} (hash table with open addressing)
+    \item \textbf{Bloom Filter:} \texttt{pybloom-live} library with $n=1,000,000$ capacity and 0.001 error rate
+    \item \textbf{Cuckoo Filter:} \texttt{cuckoo-filter} library with table size 10,000, bucket size 4, fingerprint size 8 bits
+\end{itemize}
+
+Both probabilistic filters (Bloom and Cuckoo) use a backing hash table to verify positive results, eliminating false positives at the cost of additional space overhead. This hybrid approach ensures correctness while maintaining the performance benefits of probabilistic filtering for negative lookups.
