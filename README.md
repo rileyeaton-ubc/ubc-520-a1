@@ -18,4 +18,4 @@ I generated synthetic data using the `generate_logins.py` script, which can be f
 2. Run `python -m pip install -r requirements.txt`
 3. Run `python generate_logins.py`
 
-This script will use the dataset you cloned, but a new or larger one can still be generated using the script mentioned above, which is simply run the same way.
+This script will use the dataset you cloned, but a new or larger one can still be generated using the script mentioned above, which is simply run the same way. The graphs generated from the tests in this script can be found under the `img` folder.
