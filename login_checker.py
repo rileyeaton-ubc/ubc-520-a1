@@ -4,25 +4,63 @@ from pybloom_live import BloomFilter
 from cuckoo_filter import CuckooFilter
 
 class LoginChecker:
+    """
+    Abstract base class for login checking implementations.
+    Tracks performance metrics including comparisons and login count.
+    """
     def __init__(self):
+        """
+        Input: None
+        Output: None
+        Initializes comparison counter and login count to 0.
+        """
         self.comparisons = 0
         self.login_count = 0
 
     def add_login(self, name):
+        """
+        Input: name (str) - The login name to add
+        Output: bool - True if added successfully, False if already exists
+        Abstract method to be implemented by subclasses.
+        """
         raise NotImplementedError
 
     def check_exists(self, name):
+        """
+        Input: name (str) - The login name to check
+        Output: bool - True if login exists, False otherwise
+        Abstract method to be implemented by subclasses.
+        """
         raise NotImplementedError
 
     def reset_stats(self):
+        """
+        Input: None
+        Output: None
+        Resets the comparison counter to 0.
+        """
         self.comparisons = 0
 
 class ListLinearSearchChecker(LoginChecker):
+    """
+    Login checker using a list with linear search.
+    Time complexity: O(n) for both add and lookup operations.
+    """
     def __init__(self):
+        """
+        Input: None
+        Output: None
+        Initializes an empty list to store logins.
+        """
         super().__init__()
         self.logins = []
 
     def add_login(self, name):
+        """
+        Input: name (str) - The login name to add
+        Output: bool - True if added successfully, False if already exists
+        Performs linear search to check for duplicates, then appends if unique.
+        """
         for login in self.logins:
             self.comparisons += 1
             if login == name:
@@ -32,6 +70,11 @@ class ListLinearSearchChecker(LoginChecker):
         return True
 
     def check_exists(self, name):
+        """
+        Input: name (str) - The login name to check
+        Output: bool - True if login exists, False otherwise
+        Performs linear search through the list to find the name.
+        """
         for login in self.logins:
             self.comparisons += 1
             if login == name:
@@ -39,11 +82,25 @@ class ListLinearSearchChecker(LoginChecker):
         return False
 
 class SortedArrayBinarySearchChecker(LoginChecker):
+    """
+    Login checker using a sorted array with binary search.
+    Time complexity: O(log n) for search, O(n) for insertion due to array shifting.
+    """
     def __init__(self):
+        """
+        Input: None
+        Output: None
+        Initializes an empty sorted list to store logins.
+        """
         super().__init__()
         self.logins = []
 
     def add_login(self, name):
+        """
+        Input: name (str) - The login name to add
+        Output: bool - True if added successfully, False if already exists
+        Uses binary search to find insertion position, maintains sorted order.
+        """
         left, right = 0, len(self.logins) - 1
         while left <= right:
             self.comparisons += 1
@@ -59,6 +116,11 @@ class SortedArrayBinarySearchChecker(LoginChecker):
         return True
 
     def check_exists(self, name):
+        """
+        Input: name (str) - The login name to check
+        Output: bool - True if login exists, False otherwise
+        Uses binary search to efficiently locate the name in sorted array.
+        """
         left, right = 0, len(self.logins) - 1
         while left <= right:
             self.comparisons += 1
@@ -72,11 +134,25 @@ class SortedArrayBinarySearchChecker(LoginChecker):
         return False
 
 class HashTableChecker(LoginChecker):
+    """
+    Login checker using a hash table (Python set).
+    Time complexity: O(1) average case for both add and lookup operations.
+    """
     def __init__(self):
+        """
+        Input: None
+        Output: None
+        Initializes an empty set to store logins using hash-based lookup.
+        """
         super().__init__()
         self.logins = set()
 
     def add_login(self, name):
+        """
+        Input: name (str) - The login name to add
+        Output: bool - True if added successfully, False if already exists
+        Uses hash table for O(1) duplicate checking, then adds to set.
+        """
         self.comparisons += 1
         if name in self.logins:
             return False
@@ -85,16 +161,36 @@ class HashTableChecker(LoginChecker):
         return True
 
     def check_exists(self, name):
+        """
+        Input: name (str) - The login name to check
+        Output: bool - True if login exists, False otherwise
+        Uses hash table for O(1) average case lookup.
+        """
         self.comparisons += 1
         return name in self.logins
 
 class BloomFilterChecker(LoginChecker):
+    """
+    Login checker using a Bloom filter with a backing set.
+    Bloom filter provides fast negative lookups with possible false positives.
+    Time complexity: O(1) for bloom filter checks, O(1) for set verification.
+    """
     def __init__(self, capacity=1000000, error_rate=0.001):
+        """
+        Input: capacity (int) - Maximum number of elements, error_rate (float) - False positive rate
+        Output: None
+        Initializes a Bloom filter and backing set for duplicate checking.
+        """
         super().__init__()
         self.bloom = BloomFilter(capacity=capacity, error_rate=error_rate)
         self.logins = set()
 
     def add_login(self, name):
+        """
+        Input: name (str) - The login name to add
+        Output: bool - True if added successfully, False if already exists
+        Checks Bloom filter first, then verifies with set to handle false positives.
+        """
         self.comparisons += 1
         if name in self.bloom:
             self.comparisons += 1
@@ -106,6 +202,11 @@ class BloomFilterChecker(LoginChecker):
         return True
 
     def check_exists(self, name):
+        """
+        Input: name (str) - The login name to check
+        Output: bool - True if login exists, False otherwise
+        Uses Bloom filter for fast negative checks, verifies positives with set.
+        """
         self.comparisons += 1
         if name not in self.bloom:
             return False
@@ -113,12 +214,27 @@ class BloomFilterChecker(LoginChecker):
         return name in self.logins
 
 class CuckooFilterChecker(LoginChecker):
+    """
+    Login checker using a Cuckoo filter with a backing set.
+    Cuckoo filter provides fast lookups with possible false positives and supports deletion.
+    Time complexity: O(1) for cuckoo filter checks, O(1) for set verification.
+    """
     def __init__(self, capacity=1000000, error_rate=0.001):
+        """
+        Input: capacity (int) - Maximum number of elements (unused), error_rate (float) - False positive rate (unused)
+        Output: None
+        Initializes a Cuckoo filter and backing set for duplicate checking.
+        """
         super().__init__()
         self.cuckoo = CuckooFilter(table_size=10000, bucket_size=4, fingerprint_size=8)
         self.logins = set()
 
     def add_login(self, name):
+        """
+        Input: name (str) - The login name to add
+        Output: bool - True if added successfully, False if already exists
+        Checks Cuckoo filter first, then verifies with set to handle false positives.
+        """
         self.comparisons += 1
         if name in self.cuckoo:
             self.comparisons += 1
@@ -130,6 +246,11 @@ class CuckooFilterChecker(LoginChecker):
         return True
 
     def check_exists(self, name):
+        """
+        Input: name (str) - The login name to check
+        Output: bool - True if login exists, False otherwise
+        Uses Cuckoo filter for fast negative checks, verifies positives with set.
+        """
         self.comparisons += 1
         if name not in self.cuckoo:
             return False
@@ -137,10 +258,24 @@ class CuckooFilterChecker(LoginChecker):
         return name in self.logins
 
 def load_logins_from_file(filename):
+    """
+    Input: filename (str) - Path to file containing login names (one per line)
+    Output: list[str] - List of login names with whitespace stripped
+    Reads login names from a file, removing empty lines and whitespace.
+    """
     with open(filename, 'r') as f:
         return [line.strip() for line in f if line.strip()]
 
 def run_test(checker_class, num_logins, num_lookups, login_file=None):
+    """
+    Input:
+        - checker_class (class) - LoginChecker subclass to test
+        - num_logins (int) - Number of logins to add
+        - num_lookups (int) - Number of lookup operations to perform
+        - login_file (str, optional) - Path to file with login data
+    Output: dict - Performance metrics including times and comparison counts
+    Benchmarks a login checker implementation with add and lookup operations.
+    """
     checker = checker_class()
 
     if login_file:
@@ -179,6 +314,11 @@ def run_test(checker_class, num_logins, num_lookups, login_file=None):
     }
 
 def print_results(results):
+    """
+    Input: results (dict) - Performance metrics from run_test
+    Output: None
+    Prints formatted performance results including times and comparison counts.
+    """
     print(f"\n{results['algorithm']}")
     print(f"Size: {results['num_logins']}")
     print(f"Add time: {results['add_time']:.4f}s")
@@ -187,43 +327,59 @@ def print_results(results):
     print(f"Lookup comparisons: {results['lookup_comparisons']:,} (avg {results['lookup_comparisons']/results['num_lookups']:.1f})")
 
 def main():
+    """
+    Input: None
+    Output: None
+    Main function that runs performance tests on all checker implementations,
+    prints results, and generates performance comparison plots.
+    """
+    # Define test configurations
     test_sizes = [100, 500, 1000, 2000, 5000]
     DATA_PATH = "./data/logins.txt"
     IMG_PATH = "./img/login_checker_performance.png"
     all_results = []
 
+    # Run performance tests for each size and algorithm
     for size in test_sizes:
         for checker_class in [ListLinearSearchChecker, SortedArrayBinarySearchChecker, HashTableChecker, BloomFilterChecker, CuckooFilterChecker]:
             results = run_test(checker_class, size, size, login_file=DATA_PATH)
             all_results.append(results)
             print_results(results)
 
+    # Set up plotting configuration
     algorithms = ['ListLinearSearchChecker', 'SortedArrayBinarySearchChecker', 'HashTableChecker', 'BloomFilterChecker', 'CuckooFilterChecker']
     colors = ['red', 'blue', 'green', 'purple', 'orange']
 
+    # Create side-by-side plots for add and lookup times
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
 
+    # Plot performance data for each algorithm
     for i, algo in enumerate(algorithms):
         algo_results = [r for r in all_results if r['algorithm'] == algo]
         sizes = [r['num_logins'] for r in algo_results]
         add_times = [r['add_time'] for r in algo_results]
         lookup_times = [r['lookup_time'] for r in algo_results]
 
+        # Plot add times on left subplot
         ax1.plot(sizes, add_times, marker='o', label=algo.replace('Checker', ''), color=colors[i])
+        # Plot lookup times on right subplot
         ax2.plot(sizes, lookup_times, marker='o', label=algo.replace('Checker', ''), color=colors[i])
 
+    # Configure add time plot
     ax1.set_xlabel('Number of logins')
     ax1.set_ylabel('Time (s)')
     ax1.set_title('Add Time')
     ax1.legend()
     ax1.grid(True)
 
+    # Configure lookup time plot
     ax2.set_xlabel('Number of logins')
     ax2.set_ylabel('Time (s)')
     ax2.set_title('Lookup Time')
     ax2.legend()
     ax2.grid(True)
 
+    # Save the final plot
     plt.tight_layout()
     plt.savefig(IMG_PATH)
     print(f'\nPlot saved to {IMG_PATH}')
