@@ -1,6 +1,7 @@
 import time
 import matplotlib.pyplot as plt
 from pybloom_live import BloomFilter
+from cuckoo_filter import CuckooFilter
 
 class LoginChecker:
     def __init__(self):
@@ -111,6 +112,30 @@ class BloomFilterChecker(LoginChecker):
         self.comparisons += 1
         return name in self.logins
 
+class CuckooFilterChecker(LoginChecker):
+    def __init__(self, capacity=1000000, error_rate=0.001):
+        super().__init__()
+        self.cuckoo = CuckooFilter(table_size=10000, bucket_size=4, fingerprint_size=8)
+        self.logins = set()
+
+    def add_login(self, name):
+        self.comparisons += 1
+        if name in self.cuckoo:
+            self.comparisons += 1
+            if name in self.logins:
+                return False
+        self.cuckoo.insert(name)
+        self.logins.add(name)
+        self.login_count += 1
+        return True
+
+    def check_exists(self, name):
+        self.comparisons += 1
+        if name not in self.cuckoo:
+            return False
+        self.comparisons += 1
+        return name in self.logins
+
 def load_logins_from_file(filename):
     with open(filename, 'r') as f:
         return [line.strip() for line in f if line.strip()]
@@ -163,17 +188,18 @@ def print_results(results):
 
 def main():
     test_sizes = [100, 500, 1000, 2000, 5000]
+    DATA_PATH = "./data/logins.txt"
+    IMG_PATH = "./img/login_checker_performance.png"
     all_results = []
-    login_file = 'logins.txt'
 
     for size in test_sizes:
-        for checker_class in [ListLinearSearchChecker, SortedArrayBinarySearchChecker, HashTableChecker, BloomFilterChecker]:
-            results = run_test(checker_class, size, size, login_file=login_file)
+        for checker_class in [ListLinearSearchChecker, SortedArrayBinarySearchChecker, HashTableChecker, BloomFilterChecker, CuckooFilterChecker]:
+            results = run_test(checker_class, size, size, login_file=DATA_PATH)
             all_results.append(results)
             print_results(results)
 
-    algorithms = ['ListLinearSearchChecker', 'SortedArrayBinarySearchChecker', 'HashTableChecker', 'BloomFilterChecker']
-    colors = ['red', 'blue', 'green', 'purple']
+    algorithms = ['ListLinearSearchChecker', 'SortedArrayBinarySearchChecker', 'HashTableChecker', 'BloomFilterChecker', 'CuckooFilterChecker']
+    colors = ['red', 'blue', 'green', 'purple', 'orange']
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
 
@@ -199,8 +225,8 @@ def main():
     ax2.grid(True)
 
     plt.tight_layout()
-    plt.savefig('login_checker_performance.png')
-    print('\nPlot saved to login_checker_performance.png')
+    plt.savefig(IMG_PATH)
+    print(f'\nPlot saved to {IMG_PATH}')
 
 
 if __name__ == "__main__":
