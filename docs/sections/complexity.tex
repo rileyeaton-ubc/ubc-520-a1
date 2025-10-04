@@ -127,6 +127,28 @@ where $f$ is the fingerprint size in bits and $b$ is the bucket size. For a load
 
 Cuckoo filters provide similar space efficiency to Bloom filters while supporting deletion and offering better lookup performance for certain parameters.
 
+\subsection{(Bonus) Tries}
+
+A trie (prefix tree) is a tree-based data structure where each node represents a character and paths from root to leaf represent complete strings, making it well-suited for string operations \cite{cormen2009introduction}.
+
+\textbf{Parameters:}
+\begin{itemize}
+    \item $n$ = number of stored logins
+    \item $m$ = average length of login strings
+    \item $\sigma$ = alphabet size (typically $\approx$ 100 for alphanumeric + symbols)
+\end{itemize}
+
+\textbf{Time Complexity:}
+\begin{itemize}
+    \item Insert: $O(m)$ - traverse/create $m$ nodes
+    \item Search: $O(m)$ - traverse path of length $m$
+    \item Delete: $O(m)$ - locate and remove the string
+\end{itemize}
+
+\textbf{Space Complexity:} $O(n \cdot m \cdot \sigma)$ worst case, but much better with shared prefixes
+
+Tries offer deterministic performance without hash collisions and support efficient prefix operations ($O(m + k)$ to find all logins with a given prefix). However, space overhead is higher than hash tables when strings lack common prefixes, and $O(m)$ time is slower than hash table's $O(1)$ for typical login lengths.
+
 \subsection{Complexity Comparison}
 
 Table~\ref{tab:complexity} summarizes the time and space complexity of all five approaches.
