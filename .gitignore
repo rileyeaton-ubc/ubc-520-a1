@@ -1,6 +1,7 @@
 .*/
 venv/
 assignment.pdf
+*pycache*
 
 # LaTeX-Specific
 *.aux
