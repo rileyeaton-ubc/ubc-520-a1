@@ -337,6 +337,7 @@ def main():
     test_sizes = [100, 500, 1000, 2000, 5000]
     DATA_PATH = "./data/logins.txt"
     IMG_PATH = "./img/login_checker_performance.png"
+    IMG_PATH_ZOOMED = "./img/login_checker_performance_zoomed.png"
     all_results = []
 
     # Run performance tests for each size and algorithm
@@ -346,8 +347,9 @@ def main():
             all_results.append(results)
             print_results(results)
 
-    # Set up plotting configuration
-    algorithms = ['ListLinearSearchChecker', 'SortedArrayBinarySearchChecker', 'HashTableChecker', 'BloomFilterChecker', 'CuckooFilterChecker']
+    # Set up plotting configuration    
+    algorithms = ['SortedArrayBinarySearchChecker', 'HashTableChecker', 'BloomFilterChecker', 'CuckooFilterChecker']
+    algorithms.append('ListLinearSearchChecker') # Only add if you want to be waiting a long time (need a baseline)
     colors = ['red', 'blue', 'green', 'purple', 'orange']
 
     # Create side-by-side plots for add and lookup times
@@ -382,7 +384,44 @@ def main():
     # Save the final plot
     plt.tight_layout()
     plt.savefig(IMG_PATH)
-    print(f'\nPlot saved to {IMG_PATH}')
+    print(f'\nFull plot saved to {IMG_PATH}')
+
+    # Create zoomed-in plot without ListLinearSearch for better visibility of fast algorithms
+    algorithms_zoomed = ['SortedArrayBinarySearchChecker', 'HashTableChecker', 'BloomFilterChecker', 'CuckooFilterChecker']
+    colors_zoomed = ['blue', 'green', 'purple', 'orange']
+
+    fig_zoomed, (ax1_zoomed, ax2_zoomed) = plt.subplots(1, 2, figsize=(12, 5))
+
+    # Plot performance data for fast algorithms only
+    for i, algo in enumerate(algorithms_zoomed):
+        algo_results = [r for r in all_results if r['algorithm'] == algo]
+        sizes = [r['num_logins'] for r in algo_results]
+        add_times = [r['add_time'] for r in algo_results]
+        lookup_times = [r['lookup_time'] for r in algo_results]
+
+        # Plot add times on left subplot
+        ax1_zoomed.plot(sizes, add_times, marker='o', label=algo.replace('Checker', ''), color=colors_zoomed[i])
+        # Plot lookup times on right subplot
+        ax2_zoomed.plot(sizes, lookup_times, marker='o', label=algo.replace('Checker', ''), color=colors_zoomed[i])
+
+    # Configure add time plot
+    ax1_zoomed.set_xlabel('Number of logins')
+    ax1_zoomed.set_ylabel('Time (s)')
+    ax1_zoomed.set_title('Add Time (Zoomed - Fast Algorithms Only)')
+    ax1_zoomed.legend()
+    ax1_zoomed.grid(True)
+
+    # Configure lookup time plot
+    ax2_zoomed.set_xlabel('Number of logins')
+    ax2_zoomed.set_ylabel('Time (s)')
+    ax2_zoomed.set_title('Lookup Time (Zoomed - Fast Algorithms Only)')
+    ax2_zoomed.legend()
+    ax2_zoomed.grid(True)
+
+    # Save the zoomed plot
+    plt.tight_layout()
+    plt.savefig(IMG_PATH_ZOOMED)
+    print(f'Zoomed plot saved to {IMG_PATH_ZOOMED}')
 
 
 if __name__ == "__main__":
