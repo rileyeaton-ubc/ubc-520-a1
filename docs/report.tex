@@ -8,10 +8,14 @@
 \renewcommand\footnotetextcopyrightpermission[1]{}
 \settopmatter{printfolios=true}
 
+%% Remove journal info from footer
+\settopmatter{printccs=false, printacmref=false}
+
 %% Essential packages
 \usepackage{booktabs}
 \usepackage{amsfonts}
 \usepackage{mathtools}
+\usepackage{threeparttable}
 
 %% Title and author information
 \title{Assignment 1: Algorithmic Approach to the Login Problem}
@@ -26,15 +30,20 @@
 
 \begin{document}
 
+\fancyfoot{} % Clear all footer content
+
 \maketitle
 
 \section{Computational Complexity} \label{sec:complexity}
 \input{sections/complexity}
 
+\section{Python Experiments} \label{sec:experiments}
+\input{sections/experiments}
+
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{references/refs}
 
 \section*{Acknowledgments}
-Claude was used to generate some code comments once implementation was complete.
+Anthropic's Claude was used to generate some code comments once implementation was complete.
 
 \end{document}
