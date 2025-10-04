@@ -1,25 +1,40 @@
-\documentclass[12pt, letterpaper]{article}
-\usepackage[letterpaper, margin=1in]{geometry}
-\usepackage{indentfirst}
-\usepackage{makecell}
-\usepackage{tabularx, array}
-\usepackage{graphicx}
-\usepackage{cellspace}
+%% ACM Small Standard Format (without copyright/journal info)
+\documentclass[acmsmall,screen]{acmart}
 
-\input{packages}
+%% Remove ACM reference format
+\settopmatter{printacmref=false}
+
+%% Remove copyright/permission info
+\renewcommand\footnotetextcopyrightpermission[1]{}
+\settopmatter{printfolios=true}
+
+%% Essential packages
+\usepackage{booktabs}
+\usepackage{amsfonts}
+\usepackage{mathtools}
+
+%% Title and author information
+\title{Assignment 1: Algorithmic Approach to the Login Problem}
+
+\author{Riley Eaton}
+\affiliation{%
+  \institution{University of British Columbia}
+  \city{Kelowna}
+  \state{BC}
+  \country{Canada}
+}
 
 \begin{document}
 
-\input{sections/title}
+\maketitle
 
 \section{Computational Complexity} \label{sec:complexity}
 \input{sections/complexity}
 
-\newpage
-
-\clearpage
-
-\bibliographystyle{IEEEtranN}
+\bibliographystyle{ACM-Reference-Format}
 \bibliography{references/refs}
+
+\section*{Acknowledgments}
+Claude was used to generate some code comments once implementation was complete.
 
 \end{document}
