@@ -1,0 +1,157 @@
+This section analyzes the time and space complexity of five different data structures used for login checking: linear search, binary search, hash tables, Bloom filters, and Cuckoo filters.
+
+\subsection{Linear Search}
+
+Linear search stores elements in an unsorted array or list and searches sequentially through all elements.
+
+\textbf{Parameters:}
+\begin{itemize}
+    \item $n$ = number of stored logins
+\end{itemize}
+
+\textbf{Time Complexity:}
+\begin{itemize}
+    \item Insert: $O(n)$ - must check all existing elements to verify uniqueness
+    \item Search: $O(n)$ - worst case requires examining all elements
+\end{itemize}
+
+\textbf{Space Complexity:} $O(n)$ - stores exactly $n$ elements
+
+Linear search provides no optimization for lookups, making it inefficient for large datasets \cite{cormen2009introduction}.
+
+\subsection{Binary Search}
+
+Binary search maintains elements in a sorted array, enabling logarithmic search time through the divide-and-conquer approach.
+
+\textbf{Parameters:}
+\begin{itemize}
+    \item $n$ = number of stored logins
+\end{itemize}
+
+\textbf{Time Complexity:}
+\begin{itemize}
+    \item Insert: $O(n)$ - $O(\log n)$ for binary search to find position, but $O(n)$ for array shifting to maintain sorted order
+    \item Search: $O(\log n)$ - divides search space in half at each step
+\end{itemize}
+
+\textbf{Space Complexity:} $O(n)$ - stores exactly $n$ elements in sorted order
+
+Binary search significantly improves lookup performance but insertion remains costly due to the need to maintain sorted order \cite{cormen2009introduction}.
+
+\subsection{Hash Tables}
+
+Hash tables use a hash function to map keys to array indices, providing constant-time average case operations.
+
+\textbf{Parameters:}
+\begin{itemize}
+    \item $n$ = number of stored logins
+    \item $m$ = size of hash table
+    \item $\alpha = n/m$ = load factor
+\end{itemize}
+
+\textbf{Time Complexity:}
+\begin{itemize}
+    \item Insert: $O(1)$ average case, $O(n)$ worst case with collisions
+    \item Search: $O(1)$ average case, $O(n)$ worst case with collisions
+\end{itemize}
+
+\textbf{Space Complexity:} $O(n)$ - with good hash functions and proper load factor management
+
+Hash tables provide excellent average-case performance when the load factor $\alpha$ is kept below a threshold (typically 0.7) \cite{cormen2009introduction}. Python's \texttt{set} implementation uses open addressing with a load factor that triggers resizing.
+
+\subsection{Bloom Filters}
+
+A Bloom filter is a probabilistic data structure that uses multiple hash functions to map elements into a bit array, allowing for space-efficient membership testing with possible false positives \cite{bloom1970space}.
+
+\textbf{Parameters:}
+\begin{itemize}
+    \item $n$ = estimated number of elements to insert
+    \item $m$ = size of bit array (in bits)
+    \item $k$ = number of hash functions
+    \item $p$ = desired false positive probability
+\end{itemize}
+
+\textbf{Time Complexity:}
+\begin{itemize}
+    \item Insert: $O(k)$ - requires $k$ hash function evaluations
+    \item Search: $O(k)$ - requires $k$ hash function evaluations
+\end{itemize}
+
+\textbf{Space Complexity:} $O(m)$ bits
+
+The optimal number of hash functions is given by:
+\begin{equation}
+k = \frac{m}{n} \ln 2
+\end{equation}
+
+The optimal bit array size for a desired false positive probability $p$ is:
+\begin{equation}
+m = -\frac{n \ln p}{(\ln 2)^2}
+\end{equation}
+
+The false positive probability after inserting $n$ elements is approximately:
+\begin{equation}
+p \approx \left(1 - e^{-kn/m}\right)^k
+\end{equation}
+
+Bloom filters trade accuracy for space efficiency, making them ideal when false positives are acceptable but false negatives are not \cite{broder2004network}. My implementation uses a backing hash table to verify positive results and eliminate false positives.
+
+\subsection{Cuckoo Filters}
+
+Cuckoo filters extend Bloom filters by storing fingerprints of items using cuckoo hashing, enabling deletions while maintaining space efficiency \cite{fan2014cuckoo}.
+
+\textbf{Parameters:}
+\begin{itemize}
+    \item $n$ = number of elements to insert
+    \item $m$ = number of buckets
+    \item $b$ = bucket size (entries per bucket)
+    \item $f$ = fingerprint size (in bits)
+    \item $\alpha$ = load factor (typically $\leq 0.95$)
+\end{itemize}
+
+\textbf{Time Complexity:}
+\begin{itemize}
+    \item Insert: $O(1)$ average case, with a small probability of failure requiring rehashing
+    \item Search: $O(1)$ - checks at most 2 buckets with $b$ entries each
+    \item Delete: $O(1)$ - unlike Bloom filters, supports deletion
+\end{itemize}
+
+\textbf{Space Complexity:} $O(n \cdot f)$ bits, where $f$ is typically 4-16 bits
+
+The false positive rate is approximately:
+\begin{equation}
+\epsilon \approx \frac{2b}{2^f}
+\end{equation}
+
+where $f$ is the fingerprint size in bits and $b$ is the bucket size. For a load factor $\alpha$, the total capacity is $C = \alpha \cdot b \cdot m$ \cite{fan2014cuckoo}.
+
+Cuckoo filters provide similar space efficiency to Bloom filters while supporting deletion and offering better lookup performance for certain parameters.
+
+\subsection{Complexity Comparison}
+
+Table~\ref{tab:complexity} summarizes the time and space complexity of all five approaches.
+
+\begin{table}[h]
+\centering
+\caption{Computational Complexity Comparison}
+\label{tab:complexity}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Data Structure} & \textbf{Insert} & \textbf{Search} & \textbf{Space} \\
+\midrule
+Linear Search & $O(n)$ & $O(n)$ & $O(n)$ \\
+Binary Search & $O(n)$ & $O(\log n)$ & $O(n)$ \\
+Hash Table & $O(1)^*$ & $O(1)^*$ & $O(n)$ \\
+Bloom Filter & $O(k)$ & $O(k)$ & $O(m)$ bits \\
+Cuckoo Filter & $O(1)^*$ & $O(1)$ & $O(nf)$ bits \\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}
+\small
+\item $^*$Average case complexity; worst case is $O(n)$
+\item $n$ = number of elements, $k$ = number of hash functions
+\item $m$ = bit array size, $f$ = fingerprint size in bits
+\end{tablenotes}
+\end{table}
+
+This comparison show that hash tables provide the best average-case performance for exact membership testing, while probabilistic filters (Bloom and Cuckoo) offer superior space efficiency at the cost of potential false positives. Linear and binary search serve as baselines, with binary search providing logarithmic lookup time but linear insertion cost due to array shifting.
