@@ -338,6 +338,8 @@ def main():
     DATA_PATH = "./data/logins.txt"
     IMG_PATH = "./img/login_checker_performance.png"
     IMG_PATH_ZOOMED = "./img/login_checker_performance_zoomed.png"
+    IMG_PATH_COMPARISONS = "./img/login_checker_comparisons.png"
+    IMG_PATH_COMPARISONS_ZOOMED = "./img/login_checker_comparisons_zoomed.png"
     all_results = []
 
     # Run performance tests for each size and algorithm
@@ -422,6 +424,68 @@ def main():
     plt.tight_layout()
     plt.savefig(IMG_PATH_ZOOMED)
     print(f'Zoomed plot saved to {IMG_PATH_ZOOMED}')
+
+    # Create comparison count plots (theoretical complexity validation)
+    algorithms_all = ['ListLinearSearchChecker', 'SortedArrayBinarySearchChecker', 'HashTableChecker', 'BloomFilterChecker', 'CuckooFilterChecker']
+
+    fig_comp, (ax1_comp, ax2_comp) = plt.subplots(1, 2, figsize=(12, 5))
+
+    # Plot comparison counts for all algorithms
+    for i, algo in enumerate(algorithms_all):
+        algo_results = [r for r in all_results if r['algorithm'] == algo]
+        sizes = [r['num_logins'] for r in algo_results]
+        add_comparisons = [r['add_comparisons'] / r['num_logins'] for r in algo_results]  # Average per operation
+        lookup_comparisons = [r['lookup_comparisons'] / r['num_lookups'] for r in algo_results]
+
+        # Plot average comparisons
+        ax1_comp.plot(sizes, add_comparisons, marker='o', label=algo.replace('Checker', ''), color=colors[i])
+        ax2_comp.plot(sizes, lookup_comparisons, marker='o', label=algo.replace('Checker', ''), color=colors[i])
+
+    # Configure comparison plots
+    ax1_comp.set_xlabel('Number of logins')
+    ax1_comp.set_ylabel('Average Comparisons per Operation')
+    ax1_comp.set_title('Add Comparisons (Theoretical Complexity)')
+    ax1_comp.legend()
+    ax1_comp.grid(True)
+
+    ax2_comp.set_xlabel('Number of logins')
+    ax2_comp.set_ylabel('Average Comparisons per Operation')
+    ax2_comp.set_title('Lookup Comparisons (Theoretical Complexity)')
+    ax2_comp.legend()
+    ax2_comp.grid(True)
+
+    plt.tight_layout()
+    plt.savefig(IMG_PATH_COMPARISONS)
+    print(f'Comparison count plot saved to {IMG_PATH_COMPARISONS}')
+
+    # Create zoomed comparison plot (without linear search)
+    fig_comp_zoom, (ax1_comp_zoom, ax2_comp_zoom) = plt.subplots(1, 2, figsize=(12, 5))
+
+    for i, algo in enumerate(algorithms_zoomed):
+        algo_results = [r for r in all_results if r['algorithm'] == algo]
+        sizes = [r['num_logins'] for r in algo_results]
+        add_comparisons = [r['add_comparisons'] / r['num_logins'] for r in algo_results]
+        lookup_comparisons = [r['lookup_comparisons'] / r['num_lookups'] for r in algo_results]
+
+        ax1_comp_zoom.plot(sizes, add_comparisons, marker='o', label=algo.replace('Checker', ''), color=colors_zoomed[i])
+        ax2_comp_zoom.plot(sizes, lookup_comparisons, marker='o', label=algo.replace('Checker', ''), color=colors_zoomed[i])
+
+    # Configure zoomed comparison plots
+    ax1_comp_zoom.set_xlabel('Number of logins')
+    ax1_comp_zoom.set_ylabel('Average Comparisons per Operation')
+    ax1_comp_zoom.set_title('Add Comparisons (Zoomed - Fast Algorithms)')
+    ax1_comp_zoom.legend()
+    ax1_comp_zoom.grid(True)
+
+    ax2_comp_zoom.set_xlabel('Number of logins')
+    ax2_comp_zoom.set_ylabel('Average Comparisons per Operation')
+    ax2_comp_zoom.set_title('Lookup Comparisons (Zoomed - Fast Algorithms)')
+    ax2_comp_zoom.legend()
+    ax2_comp_zoom.grid(True)
+
+    plt.tight_layout()
+    plt.savefig(IMG_PATH_COMPARISONS_ZOOMED)
+    print(f'Zoomed comparison count plot saved to {IMG_PATH_COMPARISONS_ZOOMED}')
 
 
 if __name__ == "__main__":
